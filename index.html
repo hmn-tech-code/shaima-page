@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shaima Best Boss</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#fff8e8; --bg2:#fff2d3; --ink:#4b3524; --muted:#8b6b55; --gold:#ffb347; --orange:#ff8c42; --cream:rgba(255,255,255,.76);
+      --line:rgba(111,76,46,.12); --shadow:0 20px 40px rgba(170,120,50,.17); --radius:28px; --display:'Baloo 2',cursive; --body:'Nunito',sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100dvh; overflow-x:hidden; color:var(--ink); font-family:var(--body);
+      background:
+        radial-gradient(circle at 12% 14%, rgba(255,209,117,.65), transparent 22%),
+        radial-gradient(circle at 88% 12%, rgba(255,140,66,.20), transparent 18%),
+        radial-gradient(circle at 50% 100%, rgba(255,214,140,.72), transparent 24%),
+        linear-gradient(180deg,var(--bg),var(--bg2));
+    }
+    .sky,.confetti{position:fixed;inset:0;pointer-events:none}
+    .app{width:min(100%,460px);margin:auto;min-height:100dvh;padding:16px;display:grid;align-content:center;position:relative;z-index:1}
+    .card{background:var(--cream);backdrop-filter:blur(16px);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:var(--radius);padding:20px;overflow:hidden}
+    .tag{display:inline-flex;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.82);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border:1px solid rgba(255,179,71,.18)}
+    h1,h2{font-family:var(--display);line-height:1.02}
+    h1{font-size:clamp(2rem,1.2rem + 2.9vw,3rem);margin-top:14px}
+    h2{font-size:clamp(1.4rem,1.1rem + 1vw,2rem);margin-bottom:10px}
+    p{font-size:clamp(1rem,.96rem + .3vw,1.08rem);line-height:1.72;color:var(--muted)}
+    .scene{margin:16px 0 10px;min-height:280px;border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.48),rgba(255,255,255,.2));border:1px solid rgba(255,255,255,.45);display:grid;place-items:center;position:relative;overflow:hidden}
+    .floor{position:absolute;left:-10%;right:-10%;bottom:0;height:38%;background:linear-gradient(180deg,rgba(255,224,170,0),rgba(255,224,170,.95))}
+    .chars{width:100%;max-width:330px;z-index:2;animation:bob 4.2s ease-in-out infinite}
+    @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+    .stat{padding:12px 10px;border-radius:20px;background:rgba(255,255,255,.84);border:1px solid rgba(255,179,71,.12);text-align:center}
+    .stat strong{display:block;font-size:.95rem}.stat span{font-size:.76rem;color:var(--muted)}
+    .story{display:grid;gap:14px;margin-top:16px}.step{display:none;animation:fade .4s ease}.step.active{display:block}
+    @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .bubble{padding:18px;border-radius:22px;background:rgba(255,255,255,.88);border:1px solid rgba(255,140,66,.14)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    button{min-height:48px;border:none;border-radius:999px;padding:15px 18px;font:800 .97rem var(--body)}
+    .primary{flex:1 1 170px;color:#fff;background:linear-gradient(135deg,var(--gold),var(--orange));box-shadow:0 14px 28px rgba(255,140,66,.24)}
+    .secondary{flex:1 1 120px;background:rgba(255,255,255,.92);color:var(--ink);border:1px solid rgba(111,76,46,.1)}
+    .progress{display:flex;justify-content:center;gap:7px;margin-top:16px}.dot{width:10px;height:10px;border-radius:999px;background:rgba(255,179,71,.22)}.dot.active{background:var(--orange);transform:scale(1.14)}
+    .reply{display:none;padding:16px;border-radius:20px;background:rgba(255,255,255,.9);border:1px solid rgba(255,140,66,.14);font-weight:700;color:var(--ink);text-align:center}
+    .reply.show{display:block}
+    .foot{text-align:center;font-size:.8rem;color:var(--muted);padding:12px 0 4px}
+    .float,.spark{position:absolute;pointer-events:none;animation:rise linear infinite}.float{color:#ff9a3d}.spark{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:0 0 12px rgba(255,255,255,.8)}
+    @keyframes rise{from{transform:translateY(10vh) rotate(0) scale(.8);opacity:0}15%{opacity:.6}to{transform:translateY(-110vh) rotate(180deg) scale(1.2);opacity:0}}
+  </style>
+</head>
+<body>
+  <div class="sky" aria-hidden="true"></div>
+  <div class="confetti" aria-hidden="true"></div>
+  <main class="app">
+    <section class="card">
+      <span class="tag">Official boss appreciation page 👑</span>
+      <div class="scene">
+        <svg class="chars" viewBox="0 0 360 300" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Funny cartoon scene of Shaima as boss and me as employee at the same level">
+          <ellipse cx="180" cy="264" rx="128" ry="18" fill="rgba(120, 84, 40, 0.12)"/>
+          <g transform="translate(64 72) scale(0.92)">
+            <circle cx="74" cy="44" r="34" fill="#ffd9c8"/>
+            <path d="M42 43C45 18 59 6 79 6C95 7 106 19 107 40C100 35 90 30 80 31C61 33 51 49 49 67C42 60 41 49 42 43Z" fill="#6d4634"/>
+            <circle cx="62" cy="45" r="4" fill="#402715"/>
+            <circle cx="84" cy="45" r="4" fill="#402715"/>
+            <path d="M65 58C71 63 78 63 84 58" stroke="#d97f61" stroke-width="3.4" stroke-linecap="round"/>
+            <rect x="45" y="80" width="58" height="72" rx="18" fill="#ffb347"/>
+            <rect x="35" y="92" width="16" height="50" rx="8" transform="rotate(9 35 92)" fill="#ffd9c8"/>
+            <rect x="95" y="92" width="16" height="50" rx="8" transform="rotate(-18 95 92)" fill="#ffd9c8"/>
+            <rect x="56" y="145" width="15" height="54" rx="7.5" fill="#ffd9c8"/>
+            <rect x="76" y="145" width="15" height="54" rx="7.5" fill="#ffd9c8"/>
+            <path d="M47 200H71" stroke="#6d4634" stroke-width="8" stroke-linecap="round"/>
+            <path d="M76 200H99" stroke="#6d4634" stroke-width="8" stroke-linecap="round"/>
+            <path d="M74 0L80 12L93 14L83 23L86 36L74 29L62 36L65 23L55 14L68 12L74 0Z" fill="#ffce54"/>
+            <path d="M109 96C126 88 134 104 126 117C119 129 103 130 97 121" stroke="#ff8c42" stroke-width="4" stroke-linecap="round"/>
+          </g>
+          <g transform="translate(206 98) scale(0.92)">
+            <circle cx="50" cy="36" r="28" fill="#ffe1d4"/>
+            <path d="M24 34C26 17 38 7 54 7C67 7 78 14 79 33C73 29 66 27 58 28C44 29 35 39 34 53C26 49 23 40 24 34Z" fill="#5b3f31"/>
+            <circle cx="42" cy="37" r="3.5" fill="#3e281d"/>
+            <circle cx="60" cy="37" r="3.5" fill="#3e281d"/>
+            <path d="M44 49C49 53 54 53 59 49" stroke="#d9806a" stroke-width="3" stroke-linecap="round"/>
+            <rect x="23" y="67" width="52" height="62" rx="16" fill="#8b7bff"/>
+            <rect x="15" y="76" width="14" height="44" rx="7" transform="rotate(14 15 76)" fill="#ffe1d4"/>
+            <rect x="70" y="77" width="14" height="44" rx="7" transform="rotate(-26 70 77)" fill="#ffe1d4"/>
+            <rect x="33" y="126" width="13" height="46" rx="6.5" fill="#ffe1d4"/>
+            <rect x="51" y="126" width="13" height="46" rx="6.5" fill="#ffe1d4"/>
+            <path d="M25 172H45" stroke="#5b3f31" stroke-width="7" stroke-linecap="round"/>
+            <path d="M50 172H68" stroke="#5b3f31" stroke-width="7" stroke-linecap="round"/>
+            <path d="M10 70C-5 70 -4 92 11 92" stroke="#ffe1d4" stroke-width="7" stroke-linecap="round"/>
+            <path d="M5 15L18 28" stroke="#ff8c42" stroke-width="4" stroke-linecap="round"/>
+            <path d="M18 15L5 28" stroke="#ff8c42" stroke-width="4" stroke-linecap="round"/>
+          </g>
+          <rect x="210" y="170" width="70" height="14" rx="7" fill="#ffffff" opacity=".8"/>
+          <rect x="217" y="175" width="56" height="4" rx="2" fill="#ffb347"/>
+        </svg>
+        <div class="floor"></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><strong>Boss Level</strong><span>legendary</span></div>
+        <div class="stat"><strong>Anger Mode</strong><span>sometimes loading...</span></div>
+        <div class="stat"><strong>BMW Love</strong><span>old but legendary</span></div>
+      </div>
+      <h1>Shaima is officially the best boss ever.</h1>
+      <p>This page exists to confirm a scientific fact: if Shaima is in charge, everybody acts a little straighter.</p>
+    </section>
+
+    <section class="card" style="margin-top:16px;">
+      <div class="story">
+        <div class="step active"><div class="bubble"><h2>Reason #1</h2><p>She is the kind of boss who can walk into a room and suddenly everybody remembers their unfinished tasks. That is not fear. That is leadership... probably.</p></div></div>
+        <div class="step"><div class="bubble"><h2>Reason #2</h2><p>She gets angry sometimes, yes. But honestly, that is just the deluxe boss package. Great standards, quick reactions, powerful eye contact.</p></div></div>
+        <div class="step"><div class="bubble"><h2>Reason #3</h2><p>Her instructions have two modes: very clear, and very clear but now with extra danger if you still do not understand.</p></div></div>
+        <div class="step"><div class="bubble"><h2>Reason #4</h2><p>She is funny, sharp, and impossible to ignore. Even when she is annoyed, somehow it still feels premium. Like getting told off by royalty.</p></div></div>
+        <div class="step"><div class="bubble"><h2>Reason #5</h2><p>Also, her old BMW is not just a car. It is family, history, personality, and probably a second office. She loves that thing with full loyalty, and honestly I respect it.</p></div></div>
+        <div class="step"><div class="bubble"><h2>Final report</h2><p>So yes, Shaima is the best boss ever: iconic, slightly terrifying, BMW-loyal, very respectable, and secretly the reason things actually get done around here.</p><div class="actions"><button class="primary" id="bossBtn">Approve this fact 👑</button><button class="secondary" id="againBtn">Replay the evidence</button></div><div class="reply" id="reply">Stamp added. Certified: Shaima, Best Boss Ever.</div></div></div>
+      </div>
+      <div class="actions"><button class="primary" id="nextBtn">Next</button><button class="secondary" id="backBtn">Back</button></div>
+      <div class="progress" aria-label="Progress"><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    </section>
+
+    <p class="foot">Respectfully submitted by the employee who values his life.</p>
+  </main>
+  <script>
+    const steps=[...document.querySelectorAll('.step')],dots=[...document.querySelectorAll('.dot')];
+    const nextBtn=document.getElementById('nextBtn'),backBtn=document.getElementById('backBtn');
+    const bossBtn=document.getElementById('bossBtn'),againBtn=document.getElementById('againBtn'),reply=document.getElementById('reply');
+    let current=0;
+    function render(){steps.forEach((s,i)=>s.classList.toggle('active',i===current));dots.forEach((d,i)=>d.classList.toggle('active',i===current));backBtn.disabled=current===0;backBtn.style.opacity=current===0?.45:1;nextBtn.textContent=current===steps.length-1?'Start over':'Next'}
+    nextBtn.onclick=()=>{current=current===steps.length-1?0:current+1;reply.classList.remove('show');render()};
+    backBtn.onclick=()=>{if(current>0)current--;render()};
+    bossBtn.onclick=()=>{reply.classList.add('show');burst(22)};
+    againBtn.onclick=()=>{current=0;reply.classList.remove('show');render();burst(8)};
+    function burst(n){const sky=document.querySelector('.sky');for(let i=0;i<n;i++){const el=document.createElement('span');el.className=Math.random()>.4?'float':'spark';el.textContent=['👑','✨','⭐','🚗'][Math.floor(Math.random()*4)];el.style.left=Math.random()*100+'vw';el.style.top=70+Math.random()*20+'vh';el.style.animationDuration=4+Math.random()*5+'s';el.style.fontSize=14+Math.random()*18+'px';sky.appendChild(el);setTimeout(()=>el.remove(),9000)}}
+    function seed(){const sky=document.querySelector('.sky'),conf=document.querySelector('.confetti');for(let i=0;i<12;i++){const el=document.createElement('span');el.className='float';el.textContent=i%3===0?'🚗':(i%2===0?'⭐':'✨');el.style.left=Math.random()*100+'vw';el.style.top=Math.random()*100+'vh';el.style.animationDuration=8+Math.random()*10+'s';el.style.animationDelay=-Math.random()*12+'s';el.style.fontSize=12+Math.random()*10+'px';sky.appendChild(el)}for(let i=0;i<18;i++){const s=document.createElement('span');s.className='spark';s.style.left=Math.random()*100+'vw';s.style.top=Math.random()*100+'vh';s.style.animationDuration=10+Math.random()*12+'s';s.style.animationDelay=-Math.random()*10+'s';conf.appendChild(s)}}
+    seed();render();
+  </script>
+</body>
+</html>
