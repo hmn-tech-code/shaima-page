@@ -31,8 +31,8 @@
 
       // 💡 السطوع الأخضر من فوق (أضواء المسرح)
       //    enabled:  false يطفيه
-      //    strength: قوة السطوع من 0 إلى 1 (0.5 = نص قوة الصورة تقريباً)
-      glow: { enabled: true, strength: 0.5 },
+      //    strength: قوة السطوع من 0 إلى 1 (1 = أقوى شي، 0.7 = أخف شوي من الصورة)
+      glow: { enabled: true, strength: 0.7 },
 
       bannerUrl:  "https://i.ibb.co/KjBw7NPH/IMG-6399.png",
       afterUrl:   DEFAULT_BANNER,
@@ -106,88 +106,190 @@
   }
 
   // =====================
-  // === GREEN GLOW (أضواء خضراء من فوق) ===
+  // === GREEN GLOW (أضواء مسرح خضراء من فوق + لمعات) ===
   // =====================
 
   function addTopGlow() {
     if (!C.glow || !C.glow.enabled) return;
     if (document.getElementById("noor-glow")) return;
 
-    var s = Math.max(0, Math.min(1, C.glow.strength));
-    var g = "0,230,110"; // أخضر فاتح مضيء
+    var S = Math.max(0, Math.min(1, C.glow.strength));
+    var reduceMotion = window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    var glowStyle = document.createElement("style");
-    glowStyle.textContent = `
-      #noor-glow {
-        position: fixed;
-        top: 0; left: 0; right: 0;
-        height: 100vh;
-        pointer-events: none;      /* ما يمنع الضغط على أي شي */
-        z-index: 2147483000;
-        overflow: hidden;
-        opacity: 0;
-        animation: noorGlowIn 1.2s ease-out forwards;
-      }
-      /* توهج ناعم أعلى الشاشة */
-      #noor-glow .ng-haze {
-        position: absolute;
-        inset: 0;
-        background:
-          radial-gradient(ellipse 70% 35% at 50% 0%, rgba(${g},${0.35 * s}), transparent 70%),
-          linear-gradient(to bottom, rgba(${g},${0.12 * s}), transparent 45%);
-      }
-      /* الشعاع: شكل مخروط يوسع لتحت */
-      #noor-glow .ng-beam {
-        position: absolute;
-        top: -5vh;
-        width: 26vw;
-        min-width: 120px;
-        height: 95vh;
-        transform-origin: 50% 0;
-        clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
-        background: linear-gradient(to bottom,
-          rgba(${g},${0.55 * s}) 0%,
-          rgba(${g},${0.22 * s}) 40%,
-          transparent 85%);
-        filter: blur(10px);
-        animation: noorSway 7s ease-in-out infinite alternate;
-      }
-      #noor-glow .ng-b1 { left: -8vw;  --r: -28deg; animation-duration: 8s;  }
-      #noor-glow .ng-b2 { left: 14vw;  --r: -12deg; animation-duration: 6.5s; animation-delay: -2s; }
-      #noor-glow .ng-b3 { left: 37vw;  --r:   0deg; animation-duration: 9s;  animation-delay: -4s; }
-      #noor-glow .ng-b4 { right: 14vw; --r:  12deg; animation-duration: 7s;  animation-delay: -1s; }
-      #noor-glow .ng-b5 { right: -8vw; --r:  28deg; animation-duration: 8.5s; animation-delay: -3s; }
+    var canvas = document.createElement("canvas");
+    canvas.id = "noor-glow";
+    canvas.setAttribute("aria-hidden", "true");
+    Object.assign(canvas.style, {
+      position:      "fixed",
+      top: "0", left: "0",
+      width:         "100%",
+      height:        "100%",
+      pointerEvents: "none",          // ما يمنع الضغط على أي شي
+      zIndex:        "2147483000",
+      opacity:       "0",
+      transition:    "opacity 1.5s ease-out",
+    });
+    document.body.appendChild(canvas);
 
-      @keyframes noorSway {
-        0%   { transform: rotate(calc(var(--r) - 6deg)); opacity: .75; }
-        50%  { opacity: 1; }
-        100% { transform: rotate(calc(var(--r) + 6deg)); opacity: .8; }
-      }
-      @keyframes noorGlowIn { to { opacity: 1; } }
+    var ctx = canvas.getContext("2d");
+    var W = 0, H = 0;
 
-      /* لمن مفعّل تقليل الحركة في جواله */
-      @media (prefers-reduced-motion: reduce) {
-        #noor-glow, #noor-glow .ng-beam { animation: none; opacity: 1; }
-        #noor-glow .ng-beam { transform: rotate(var(--r)); }
-      }
-    `;
-    document.head.appendChild(glowStyle);
+    function resize() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width  = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener("resize", resize);
 
-    var wrap = document.createElement("div");
-    wrap.id = "noor-glow";
-    wrap.setAttribute("aria-hidden", "true");
+    // الأشعة: x = مكان مصدر الضوء (نسبة من العرض)، a = الميلان، w = عرض الشعاع
+    var beams = [
+      { x:  0.02, a:  0.55, w: 0.16, amp: 0.08, sp: 0.30, ph: 0.0 },
+      { x:  0.30, a:  0.18, w: 0.14, amp: 0.12, sp: 0.42, ph: 1.7 },
+      { x:  0.50, a:  0.00, w: 0.18, amp: 0.10, sp: 0.36, ph: 3.1 },
+      { x:  0.70, a: -0.18, w: 0.14, amp: 0.12, sp: 0.40, ph: 2.3 },
+      { x:  0.98, a: -0.55, w: 0.16, amp: 0.08, sp: 0.28, ph: 5.2 },
+    ];
 
-    var haze = document.createElement("div");
-    haze.className = "ng-haze";
-    wrap.appendChild(haze);
-
-    for (var i = 1; i <= 5; i++) {
-      var beam = document.createElement("div");
-      beam.className = "ng-beam ng-b" + i;
-      wrap.appendChild(beam);
+    function beamAngle(b, t) {
+      return b.a + Math.sin(t * b.sp + b.ph) * b.amp;
     }
 
-    document.body.appendChild(wrap);
+    // اللمعات (ذهبي + أخضر) — تبان أكثر داخل الأشعة
+    var COLORS = ["255,205,70", "255,225,120", "60,230,110", "120,255,150", "250,255,235"];
+    var particles = [];
+    var count = window.innerWidth < 600 ? 240 : 380;
+    for (var i = 0; i < count; i++) {
+      particles.push({
+        x:     Math.random(),
+        y:     Math.random(),
+        r:     Math.random() < 0.08 ? 3 + Math.random() * 5 : 0.6 + Math.random() * 1.6,
+        vy:    0.004 + Math.random() * 0.012,
+        vx:    (Math.random() - 0.5) * 0.004,
+        tw:    Math.random() * Math.PI * 2,
+        tws:   1.5 + Math.random() * 3.5,
+        c:     COLORS[(Math.random() * COLORS.length) | 0],
+      });
+    }
+
+    function lightAt(px, py, t) {
+      var f = 0;
+      for (var k = 0; k < beams.length; k++) {
+        var b  = beams[k];
+        var sx = b.x * W, sy = -20;
+        var dx = px - sx, dy = py - sy;
+        var d  = Math.abs(Math.atan2(dx, dy) - beamAngle(b, t)) / b.w;
+        if (d < 1) {
+          var dist = Math.sqrt(dx * dx + dy * dy) / (H * 1.15);
+          f = Math.max(f, (1 - d) * Math.max(0, 1 - dist));
+        }
+      }
+      return f;
+    }
+
+    function drawBeam(b, t) {
+      var sx  = b.x * W, sy = -20;
+      var L   = H * 1.15;
+      var dir = Math.PI / 2 - beamAngle(b, t);
+      var pulse = 0.85 + 0.15 * Math.sin(t * 1.3 + b.ph * 2);
+
+      // طبقات كثيرة: عريضة خفيفة → نواة ساطعة (عشان الحواف تكون ناعمة)
+      var layers = [ [1.0, 0.025], [0.82, 0.03], [0.64, 0.04], [0.47, 0.05], [0.32, 0.06], [0.18, 0.08] ];
+      for (var j = 0; j < layers.length; j++) {
+        var w = b.w * layers[j][0];
+        var a = layers[j][1] * S * pulse;
+        var g = ctx.createRadialGradient(sx, sy, 0, sx, sy, L);
+        g.addColorStop(0.00, "rgba(235,255,240," + a * 3 + ")");
+        g.addColorStop(0.12, "rgba(80,240,130,"  + a + ")");
+        g.addColorStop(0.55, "rgba(30,200,95,"   + a * 0.45 + ")");
+        g.addColorStop(1.00, "rgba(20,160,70,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.arc(sx, sy, L, dir - w, dir + w);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // وهج مصدر الضوء فوق
+      var fr = Math.min(W, H) * 0.22;
+      var fg = ctx.createRadialGradient(sx, 0, 0, sx, 0, fr);
+      fg.addColorStop(0.0, "rgba(245,255,245," + 0.8 * S * pulse + ")");
+      fg.addColorStop(0.3, "rgba(90,240,140,"  + 0.35 * S * pulse + ")");
+      fg.addColorStop(1.0, "rgba(40,200,90,0)");
+      ctx.fillStyle = fg;
+      ctx.fillRect(sx - fr, 0, fr * 2, fr);
+    }
+
+    var last = 0;
+    function frame(ms) {
+      var t  = ms / 1000;
+      var dt = last ? Math.min(0.05, t - last) : 0.016;
+      last = t;
+
+      ctx.globalCompositeOperation = "source-over";
+      ctx.clearRect(0, 0, W, H);
+
+      // صبغة خضراء خفيفة على الصفحة (أقوى فوق)
+      var tint = ctx.createLinearGradient(0, 0, 0, H);
+      tint.addColorStop(0, "rgba(15,70,35," + 0.30 * S + ")");
+      tint.addColorStop(1, "rgba(15,70,35," + 0.16 * S + ")");
+      ctx.fillStyle = tint;
+      ctx.fillRect(0, 0, W, H);
+
+      // الإضاءة تنجمع فوق بعض (مثل الضوء الحقيقي)
+      ctx.globalCompositeOperation = "lighter";
+
+      var haze = ctx.createLinearGradient(0, 0, 0, H * 0.35);
+      haze.addColorStop(0, "rgba(60,230,120," + 0.22 * S + ")");
+      haze.addColorStop(1, "rgba(60,230,120,0)");
+      ctx.fillStyle = haze;
+      ctx.fillRect(0, 0, W, H * 0.35);
+
+      for (var k = 0; k < beams.length; k++) drawBeam(beams[k], t);
+
+      // اللمعات تنرسم عادي عشان تبان حتى على الخلفية البيضاء
+      ctx.globalCompositeOperation = "source-over";
+
+      for (var i = 0; i < particles.length; i++) {
+        var p = particles[i];
+        if (!reduceMotion) {
+          p.y += p.vy * dt;
+          p.x += p.vx * dt + Math.sin(t * 0.6 + p.tw) * 0.0003;
+          if (p.y > 1.02) { p.y = -0.02; p.x = Math.random(); }
+          if (p.x < -0.02) p.x = 1.02; else if (p.x > 1.02) p.x = -0.02;
+        }
+        var px = p.x * W, py = p.y * H;
+        var tw = 0.35 + 0.65 * Math.abs(Math.sin(t * p.tws + p.tw));
+        var a  = S * tw * (0.25 + 1.1 * lightAt(px, py, t));
+        if (a < 0.03) continue;
+
+        if (p.r > 2.5) {
+          // بوكيه (دوائر ضوء ناعمة كبيرة)
+          var bg = ctx.createRadialGradient(px, py, 0, px, py, p.r);
+          bg.addColorStop(0, "rgba(" + p.c + "," + Math.min(1, a * 0.6) + ")");
+          bg.addColorStop(1, "rgba(" + p.c + ",0)");
+          ctx.fillStyle = bg;
+          ctx.beginPath(); ctx.arc(px, py, p.r, 0, Math.PI * 2); ctx.fill();
+        } else {
+          ctx.fillStyle = "rgba(" + p.c + "," + Math.min(1, a) * 0.3 + ")";
+          ctx.beginPath(); ctx.arc(px, py, p.r * 3, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "rgba(" + p.c + "," + Math.min(1, a) + ")";
+          ctx.beginPath(); ctx.arc(px, py, p.r, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+
+      if (!reduceMotion) requestAnimationFrame(frame);
+    }
+
+    requestAnimationFrame(function (ms) {
+      frame(ms);
+      canvas.style.opacity = "1";
+    });
   }
 
   // =====================
