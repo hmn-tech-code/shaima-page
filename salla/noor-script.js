@@ -17,6 +17,9 @@
   // البانر الافتراضي اللي يرجع بعد انتهاء أي حملة
   var DEFAULT_BANNER = "https://i.ibb.co/TqpgpB3G/IMG-5506.png";
 
+  // البانر الأصلي للمتجر (يرجع بعد ما تخلص حملة اليوم الوطني + المباراة)
+  var ORIGINAL_BANNER = "https://i.ibb.co/67CxcTHt/1f4271a6-5960-43e1-a89e-25cc3c41723f.jpg";
+
   var DAY = 24 * 60 * 60 * 1000;
 
   // =========================================================
@@ -33,6 +36,23 @@
       //    enabled:  false يطفيه
       //    strength: قوة السطوع من 0 إلى 1 (1 = أقوى شي، 0.7 = أخف شوي من الصورة)
       glow: { enabled: true, strength: 0.7 },
+
+      // ⏰ وقت النهاية: 7 أكتوبر 2026 — 12:00 AM بتوقيت السعودية
+      //    بعدها يرجع البانر الأصلي ويختفي التوقع والأضواء تلقائياً
+      endsAt:        Date.UTC(2026, 9, 6, 21, 0, 0),
+      endBannerUrl:  ORIGINAL_BANNER,
+
+      // ⚽ توقع المباراة (تحت البانر)
+      match: {
+        title:   "توقّع نهائي كأس الخليج 🏆",
+        // ضربة البداية: 10:00 PM بتوقيت الإمارات = 9:00 PM بتوقيت السعودية
+        kickoff: Date.UTC(2026, 9, 6, 18, 0, 0),
+        timeText: "اليوم 9:00 مساءً بتوقيت السعودية",
+        home: { name: "السعودية", flag: "https://flagcdn.com/w160/sa.png" },
+        away: { name: "الإمارات", flag: "https://flagcdn.com/w160/ae.png" },
+        // نسب تقريبية للعرض (مو تصويت حقيقي)
+        baseVotes: { home: 1480, draw: 310, away: 590 }
+      },
 
       bannerUrl:  "https://i.ibb.co/KjBw7NPH/IMG-6399.png",
       afterUrl:   DEFAULT_BANNER,
@@ -114,6 +134,7 @@
     if (document.getElementById("noor-glow")) return;
 
     var S = Math.max(0, Math.min(1, C.glow.strength));
+    var stopped = false;
     var reduceMotion = window.matchMedia &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -283,13 +304,219 @@
         }
       }
 
-      if (!reduceMotion) requestAnimationFrame(frame);
+      if (!reduceMotion && !stopped) requestAnimationFrame(frame);
     }
 
     requestAnimationFrame(function (ms) {
       frame(ms);
       canvas.style.opacity = "1";
     });
+
+    // ترجع دالة تطفي الأضواء (نستخدمها الساعة 12 بالليل)
+    return function stopGlow() {
+      stopped = true;
+      window.removeEventListener("resize", resize);
+      canvas.style.opacity = "0";
+      setTimeout(function () { canvas.remove(); }, 1600);
+    };
+  }
+
+  // =====================
+  // === MATCH PREDICTION (توقع المباراة) ===
+  // =====================
+
+  function addMatchPoll(afterEl) {
+    var M = C.match;
+    if (!M) return null;
+
+    var KEY = "noor-poll-" + M.kickoff;
+    var LABELS = {
+      home: "فوز " + M.home.name,
+      draw: "تعادل",
+      away: "فوز " + M.away.name
+    };
+
+    function getVote() {
+      try { return localStorage.getItem(KEY); } catch (e) { return null; }
+    }
+    function saveVote(v) {
+      try { localStorage.setItem(KEY, v); } catch (e) {}
+    }
+
+    // الأصوات تزيد شوي مع الوقت عشان تبان حيّة
+    function getCounts(myVote) {
+      var mins = Math.max(0, Math.floor((Date.now() - (M.kickoff - 12 * 3600000)) / 60000));
+      var c = {
+        home: M.baseVotes.home + Math.floor(mins * 2.1),
+        draw: M.baseVotes.draw + Math.floor(mins * 0.4),
+        away: M.baseVotes.away + Math.floor(mins * 0.8)
+      };
+      if (myVote && c[myVote] !== undefined) c[myVote] += 1;
+      return c;
+    }
+
+    var css = document.createElement("style");
+    css.textContent = `
+      #noor-poll {
+        direction: rtl;
+        font-family: inherit;
+        margin: 14px 12px;
+        padding: 18px 16px 16px;
+        border-radius: 18px;
+        color: #fff;
+        background:
+          radial-gradient(ellipse 80% 60% at 50% 0%, rgba(80,240,140,.28), transparent 70%),
+          linear-gradient(160deg, #0b5a30 0%, #063d20 60%, #04291a 100%);
+        box-shadow: 0 10px 28px rgba(0,80,40,.25), inset 0 1px 0 rgba(255,255,255,.12);
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+      }
+      #noor-poll * { box-sizing: border-box; }
+      #noor-poll .np-title { font-weight: 800; font-size: 1.1rem; margin: 0 0 4px; }
+      #noor-poll .np-sub   { font-size: .8rem; opacity: .8; margin: 0 0 14px; }
+      #noor-poll .np-teams {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 8px; margin-bottom: 14px;
+      }
+      #noor-poll .np-team { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+      #noor-poll .np-flag {
+        width: 64px; height: 44px; border-radius: 10px; object-fit: cover;
+        box-shadow: 0 4px 12px rgba(0,0,0,.3); border: 2px solid rgba(255,255,255,.85);
+        background: rgba(255,255,255,.15);
+      }
+      #noor-poll .np-name { font-weight: 700; font-size: .95rem; }
+      #noor-poll .np-vs {
+        font-weight: 900; font-size: 1.05rem; color: #ffd76a;
+        width: 44px; height: 44px; border-radius: 50%; line-height: 44px; flex: none;
+        background: rgba(255,255,255,.1); border: 1px solid rgba(255,215,106,.4);
+      }
+      #noor-poll .np-timer { font-size: .8rem; color: #ffd76a; margin: -4px 0 12px; font-weight: 700; }
+      #noor-poll .np-btns { display: flex; gap: 8px; }
+      #noor-poll .np-btn {
+        flex: 1; padding: 12px 4px; border-radius: 12px; cursor: pointer;
+        font: inherit; font-weight: 800; font-size: .9rem; color: #063d20;
+        background: #fff; border: none;
+        box-shadow: 0 4px 0 rgba(0,0,0,.18);
+        transition: transform .15s, box-shadow .15s, background .2s;
+      }
+      #noor-poll .np-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.18); }
+      #noor-poll .np-btn.np-draw { background: #e9f3ec; }
+      #noor-poll .np-results { display: none; text-align: right; }
+      #noor-poll.np-voted .np-btns { display: none; }
+      #noor-poll.np-voted .np-results { display: block; animation: npIn .4s ease-out; }
+      #noor-poll .np-row { margin-bottom: 10px; }
+      #noor-poll .np-row-head { display: flex; justify-content: space-between; font-size: .88rem; font-weight: 700; margin-bottom: 5px; }
+      #noor-poll .np-track { height: 12px; border-radius: 99px; background: rgba(255,255,255,.14); overflow: hidden; }
+      #noor-poll .np-fill {
+        height: 100%; width: 0; border-radius: 99px;
+        background: linear-gradient(90deg, #7dffb0, #2fd477);
+        transition: width 1.1s cubic-bezier(.2,.9,.3,1);
+      }
+      #noor-poll .np-row.np-mine .np-fill { background: linear-gradient(90deg, #ffe58a, #f5b82e); }
+      #noor-poll .np-row.np-mine .np-row-head span:first-child::after { content: "  ✓ توقعك"; color: #ffd76a; font-size: .78rem; }
+      #noor-poll .np-total { font-size: .78rem; opacity: .75; text-align: center; margin-top: 4px; }
+      #noor-poll .np-thanks { text-align: center; font-weight: 800; margin-bottom: 12px; }
+      @keyframes npIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    `;
+    document.head.appendChild(css);
+
+    var box = document.createElement("div");
+    box.id = "noor-poll";
+    box.innerHTML =
+      '<div class="np-title"></div>' +
+      '<div class="np-sub"></div>' +
+      '<div class="np-teams">' +
+        '<div class="np-team"><img class="np-flag" alt=""><div class="np-name"></div></div>' +
+        '<div class="np-vs">VS</div>' +
+        '<div class="np-team"><img class="np-flag" alt=""><div class="np-name"></div></div>' +
+      '</div>' +
+      '<div class="np-timer"></div>' +
+      '<div class="np-btns">' +
+        '<button type="button" class="np-btn" data-v="home"></button>' +
+        '<button type="button" class="np-btn np-draw" data-v="draw"></button>' +
+        '<button type="button" class="np-btn" data-v="away"></button>' +
+      '</div>' +
+      '<div class="np-results">' +
+        '<div class="np-thanks"></div>' +
+        '<div class="np-bars"></div>' +
+        '<div class="np-total"></div>' +
+      '</div>';
+
+    box.querySelector(".np-title").textContent = M.title;
+    box.querySelector(".np-sub").textContent = M.home.name + " × " + M.away.name + " — " + M.timeText;
+    var flags = box.querySelectorAll(".np-flag");
+    var names = box.querySelectorAll(".np-name");
+    flags[0].src = M.home.flag; flags[0].alt = M.home.name; names[0].textContent = M.home.name;
+    flags[1].src = M.away.flag; flags[1].alt = M.away.name; names[1].textContent = M.away.name;
+
+    var btns = box.querySelectorAll(".np-btn");
+    for (var b = 0; b < btns.length; b++) {
+      btns[b].textContent = LABELS[btns[b].getAttribute("data-v")];
+      btns[b].addEventListener("click", function () {
+        var v = this.getAttribute("data-v");
+        saveVote(v);
+        showResults(v);
+      });
+    }
+
+    function showResults(myVote) {
+      var c = getCounts(myVote);
+      var total = c.home + c.draw + c.away;
+      var bars = box.querySelector(".np-bars");
+      bars.innerHTML = "";
+      var fills = [];
+      ["home", "draw", "away"].forEach(function (k) {
+        var pct = Math.round(c[k] / total * 100);
+        var row = document.createElement("div");
+        row.className = "np-row" + (k === myVote ? " np-mine" : "");
+        row.innerHTML = '<div class="np-row-head"><span></span><span></span></div>' +
+                        '<div class="np-track"><div class="np-fill"></div></div>';
+        row.querySelector(".np-row-head span:first-child").textContent = LABELS[k];
+        row.querySelector(".np-row-head span:last-child").textContent = pct + "%";
+        bars.appendChild(row);
+        fills.push([row.querySelector(".np-fill"), pct]);
+      });
+      box.querySelector(".np-thanks").textContent = myVote
+        ? "شكراً على توقعك! 💚 يلا نشجع الأخضر 🇸🇦"
+        : "انتهى التصويت — توقعات زوار نور 💚";
+      box.querySelector(".np-total").textContent = total.toLocaleString("en-US") + " توقع";
+      box.classList.add("np-voted");
+      // تحريك الأشرطة
+      setTimeout(function () {
+        fills.forEach(function (f) { f[0].style.width = f[1] + "%"; });
+      }, 60);
+    }
+
+    // عداد لين ضربة البداية
+    var timerEl = box.querySelector(".np-timer");
+    function tick() {
+      var diff = M.kickoff - Date.now();
+      if (diff <= 0) {
+        timerEl.textContent = "⚽ المباراة بدأت — بالتوفيق للأخضر!";
+        // بعد بداية المباراة يتقفل التصويت وتطلع النتائج
+        if (!box.classList.contains("np-voted")) showResults(getVote());
+        clearInterval(tickTimer);
+        return;
+      }
+      var h = Math.floor(diff / 3600000);
+      var m = Math.floor(diff % 3600000 / 60000);
+      var sec = Math.floor(diff % 60000 / 1000);
+      timerEl.textContent = "⏳ باقي على المباراة: " +
+        String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0") + ":" + String(sec).padStart(2, "0");
+    }
+    var tickTimer = setInterval(tick, 1000);
+
+    var saved = getVote();
+    if (saved) showResults(saved);
+    tick();
+
+    afterEl.parentNode.insertBefore(box, afterEl.nextSibling);
+
+    return function removePoll() {
+      clearInterval(tickTimer);
+      box.remove();
+    };
   }
 
   // =====================
@@ -298,10 +525,16 @@
 
   window.addEventListener("load", function () {
 
-    try {
-      addTopGlow();
-    } catch (e) {
-      console.error("Noor glow error:", e);
+    // هل خلصت الحملة؟ (بعد 12 بالليل بتوقيت السعودية)
+    var campaignOver = C.endsAt && Date.now() >= C.endsAt;
+
+    var stopGlow = null;
+    if (!campaignOver) {
+      try {
+        stopGlow = addTopGlow();
+      } catch (e) {
+        console.error("Noor glow error:", e);
+      }
     }
 
     try {
@@ -336,7 +569,7 @@
       // === BANNER ===
       // =====================
 
-      const BANNER_URL       = C.bannerUrl;
+      const BANNER_URL       = campaignOver ? C.endBannerUrl : C.bannerUrl;
       const BANNER_AFTER_URL = C.afterUrl;
 
       const banner = document.createElement("img");
@@ -357,6 +590,28 @@
       adjustBannerHeight();
       window.addEventListener("resize", adjustBannerHeight);
       document.body.prepend(banner);
+
+      // ⚽ توقع المباراة تحت البانر
+      var removePoll = null;
+      if (!campaignOver) {
+        try {
+          removePoll = addMatchPoll(banner);
+        } catch (e) {
+          console.error("Noor poll error:", e);
+        }
+      }
+
+      // لو الصفحة مفتوحة وقت 12 بالليل: رجّع البانر الأصلي وأخفِ التوقع والأضواء
+      if (!campaignOver && C.endsAt) {
+        var untilEnd = C.endsAt - Date.now();
+        if (untilEnd < 24 * 60 * 60 * 1000) {
+          setTimeout(function () {
+            banner.src = C.endBannerUrl;
+            if (removePoll) removePoll();
+            if (stopGlow) stopGlow();
+          }, untilEnd);
+        }
+      }
 
       // 🚫 العداد مطفي لهذي الحملة → بانر فقط، بدون تواريخ ولا عدّاد
       if (C.showCountdown === false) return;
