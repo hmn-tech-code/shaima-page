@@ -48,8 +48,8 @@
         // ضربة البداية: 10:00 PM بتوقيت الإمارات = 9:00 PM بتوقيت السعودية
         kickoff: Date.UTC(2026, 9, 6, 18, 0, 0),
         timeText: "اليوم 9:00 مساءً بتوقيت السعودية",
-        home: { name: "السعودية", flag: "https://flagcdn.com/w160/sa.png" },
-        away: { name: "الإمارات", flag: "https://flagcdn.com/w160/ae.png" },
+        home: { name: "السعودية", flag: "https://flagcdn.com/w320/sa.png" },
+        away: { name: "الإمارات", flag: "https://flagcdn.com/w320/ae.png" },
         // نسب تقريبية للعرض (مو تصويت حقيقي)
         baseVotes: { home: 1480, draw: 310, away: 590 }
       },
@@ -381,7 +381,7 @@
       }
       #noor-poll .np-team { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
       #noor-poll .np-flag {
-        width: 64px; height: 44px; border-radius: 10px; object-fit: cover;
+        width: 66px; height: 44px; border-radius: 8px; object-fit: cover;
         box-shadow: 0 4px 12px rgba(0,0,0,.3); border: 2px solid rgba(255,255,255,.85);
         background: rgba(255,255,255,.15);
       }
